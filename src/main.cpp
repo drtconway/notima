@@ -407,15 +407,6 @@ namespace // anonymous
 
         const size_t K = 11;
 
-        std::ifstream inp(p_str);
-        tsv<string, string, string, string> tbl(inp);
-
-        std::tuple<string, string, string, string> tup;
-        while (tbl.next(tup))
-        {
-            cout << std::get<0>(tup) << endl;
-        }
-
         return;
     }
 }
