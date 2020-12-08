@@ -42,8 +42,6 @@ set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 find_package(ZLIB REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
-#find_package(HTSLib REQUIRED)
-include(cmake/FindHTSLib.cmake)
 find_package(docopt COMPONENTS CXX REQUIRED)
 
 add_subdirectory(src)
