@@ -1,17 +1,21 @@
 
-# Make an explicit list of all source files in CMakeDemo_INC. This is important
+# Make an explicit list of all source files in Notima_INC. This is important
 # because CMake is not a build system: it is a build system generator. Suppose
 # you add a file foo.cpp to src/ after running cmake .. . If you set
-# CMakeDemo_INC with `file(GLOB ... )`, this is not passed to the makefile; it
+# Notima_INC with `file(GLOB ... )`, this is not passed to the makefile; it
 # doesn't know that foo.cpp exists and will not re-run cmake. Your
 # collaborator's builds will fail and it will be unclear why. Whether you use
 # file(GLOB ...) or not, you will need to re-run cmake, but with an explicit
 # file list, you know beforehand why your code isn't compiling. 
-set(CMakeDemo_INC
-    source_file.hpp
+set(Notima_INC
+    notima/codec8.hpp
+    fastq.hpp
+    files.hpp
+    gzipf.hpp
+    topgm.hpp
     )
 
 # Form the full path to the source files...
-PREPEND(CMakeDemo_INC)
+PREPEND(Notima_INC)
 # ... and pass the variable to the parent scope.
-set(CMakeDemo_INC ${CMakeDemo_INC}  PARENT_SCOPE)
+set(Notima_INC ${Notima_INC}  PARENT_SCOPE)
