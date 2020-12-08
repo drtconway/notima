@@ -101,20 +101,26 @@ namespace notima
                          const std::string& p_seq,
                          std::vector<kmer>& p_fwd, std::vector<kmer>& p_rev)
         {
-            make(p_k, p_seq.begin(), p_seq.end(), p_fwd, p_rev);
+            make(p_k, p_seq.begin(), p_seq.end(), [&](const kmer& x, const kmer& xb) {
+                p_fwd.push_back(x);
+                p_rev.push_back(xb);
+            });
         }
 
         static void make(const size_t p_k,
                          const std::string_view& p_seq,
                          std::vector<kmer>& p_fwd, std::vector<kmer>& p_rev)
         {
-            make(p_k, p_seq.begin(), p_seq.end(), p_fwd, p_rev);
+            make(p_k, p_seq.begin(), p_seq.end(), [&](const kmer& x, const kmer& xb) {
+                p_fwd.push_back(x);
+                p_rev.push_back(xb);
+            });
         }
 
-        template <typename Iterator>
+        template <typename Iterator, typename Consumer>
         static void make(const size_t p_k,
                          Iterator p_begin, Iterator p_end,
-                         std::vector<kmer>& p_fwd, std::vector<kmer>& p_rev)
+                         Consumer p_consumer)
         {
             const kmer msk = (1ULL << (2*p_k)) - 1;
             const size_t s = 2*(p_k - 1);
@@ -146,8 +152,7 @@ namespace notima
                 if (j == p_k)
                 {
                     x &= msk;
-                    p_fwd.push_back(x);
-                    p_rev.push_back(xb);
+                    p_consumer(x, xb);
                     j -= 1;
                 }
                 i += 1;
