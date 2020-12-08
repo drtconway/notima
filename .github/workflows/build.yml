@@ -5,12 +5,19 @@ on: [push]
 
 jobs:
   build-ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
+    - name: install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git nlohmann-json3-dev
+        git clone https://github.com/docopt/docopt.cpp.git
+        cd docopt.cpp
+        cmake .
+        sudo make install
     - name: build and run
       run: |
-        sudo apt install -y liblapack-dev
         mkdir build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release
