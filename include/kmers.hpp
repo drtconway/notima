@@ -1,6 +1,7 @@
 #ifndef NOTIMA_KMERS_HPP
 #define NOTIMA_KMERS_HPP
 
+#include <notima/spookyv2.hpp>
 //#include <bit>
 #include <algorithm>
 #include <string>
@@ -88,7 +89,28 @@ namespace notima
         {
             return rev(~p_x) >> (64 - 2*p_k);
         }
-        
+
+        static uint64_t hash(const kmer& p_x, uint64_t p_seed = 19)
+        {
+            return spooky::hash64(p_seed, p_x);
+        }
+
+        static kmer canonical(const size_t& p_k, const kmer& p_x)
+        {
+            kmer xb = rc(p_k, p_x);
+            return canonical(p_k, p_x, xb);
+        }
+
+        static kmer canonical(const size_t& p_k, const kmer& p_x, const kmer& p_xb)
+        {
+            return (hash(p_x) <= hash(p_xb) ? p_x : p_xb);
+        }
+
+        static double unif(const kmer& p_x, const uint64_t& p_seed)
+        {
+            uint64_t h = hash(p_x, p_seed);
+            return static_cast<double>(h)/static_cast<double>(0xFFFFFFFFFFFFFFFFULL);
+        }
         //static size_t ham(x, y)
         //{
         //    static constexpr kmer m1 = 0x5555555555555555ULL # 01010101...
