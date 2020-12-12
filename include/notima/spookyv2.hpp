@@ -1,6 +1,8 @@
 #ifndef NOTIMA_SPOOKYV2_HPP
 #define NOTIMA_SPOOKYV2_HPP
 
+#include <cstring>
+
 namespace notima
 {
     struct spooky
@@ -69,7 +71,7 @@ namespace notima
             {
                 while (u.p64 < end_)
                 {
-                    memcpy(buf, u.p64, sc_blockSize);
+                    std::memcpy(buf, u.p64, sc_blockSize);
                     mix(buf, h0,h1,h2,h3,h4,h5,h6,h7,h8,h9,h10,h11);
                     u.p64 += sc_numVars;
                 }
@@ -77,7 +79,7 @@ namespace notima
 
             // handle the last partial block of sc_blockSize bytes
             remainder = length - (reinterpret_cast<const uint8_t *>(end_) - reinterpret_cast<const uint8_t *>(message));
-            memcpy(buf, end_, remainder);
+            std::memcpy(buf, end_, remainder);
             memset(reinterpret_cast<uint8_t *>(buf)+remainder, 0, sc_blockSize-remainder);
             reinterpret_cast<uint8_t *>(buf)[sc_blockSize-1] = remainder;
             
@@ -191,7 +193,7 @@ namespace notima
             
             if (u.i & 0x7)
             {
-                memcpy(buf, message, length);
+                std::memcpy(buf, message, length);
                 u.p64 = buf;
             }
 
