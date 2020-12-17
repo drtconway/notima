@@ -10,6 +10,7 @@ set(Notima_TEST_SRC
     test_kmers.cpp
     test_stats.cpp
     test_tsv.cpp
+    test_wordy.cpp
 )
 set(Notima_TEST_HEADER
     catch.hpp

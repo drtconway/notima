@@ -11,6 +11,7 @@ set(Notima_INC
     notima/codec8.hpp
     notima/spookyv2.hpp
     notima/stats.hpp
+    notima/wordy.hpp
     fastq.hpp
     files.hpp
     gzipf.hpp
