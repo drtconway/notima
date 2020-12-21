@@ -16,6 +16,17 @@ namespace notima
         {
             static constexpr uint64_t value = 0ULL;
         };
+
+        template <uint64_t x>
+        struct ILog2
+        {
+            static constexpr uint64_t value = 1 + ILog2<(x >> 1)>::value;
+        };
+        template <>
+        struct ILog2<0ULL>
+        {
+            static constexpr uint64_t value = 0;
+        };
     }
     // namespace detail
 
@@ -65,7 +76,6 @@ namespace notima
             uint64_t s3 = (lt<8>(0x0, ((x >> b & 0xFF) * L<8>) & 0x8040201008040201ULL) >> 0x7) * L<8>;
             return b + (((le<8>(s3, l * L<8>) >> 7) * L<8>) >> 56);
         }
-
     };
 }
 // namespace notima
