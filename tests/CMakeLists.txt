@@ -8,6 +8,7 @@ set(Notima_TEST_SRC
     test_fastq.cpp
     test_gzipf.cpp
     test_kmers.cpp
+    test_poppy.cpp
     test_stats.cpp
     test_tsv.cpp
     test_wordy.cpp
