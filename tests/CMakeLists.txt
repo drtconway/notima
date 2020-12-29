@@ -10,6 +10,7 @@ set(Notima_TEST_SRC
     test_kmers.cpp
     test_poppy.cpp
     test_stats.cpp
+    test_subword_array.cpp
     test_tsv.cpp
     test_wordy.cpp
 )

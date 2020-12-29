@@ -12,6 +12,7 @@ set(Notima_INC
     notima/poppy.hpp
     notima/spookyv2.hpp
     notima/stats.hpp
+    notima/subword_array.hpp
     notima/wordy.hpp
     fastq.hpp
     files.hpp
