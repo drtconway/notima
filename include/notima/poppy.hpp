@@ -137,56 +137,41 @@ namespace notima
             return block_start + basic_block::select(words.begin() + block_start_word, p_r - left_count);
         }
 
-        struct rank_index
+        uint64_t rank0(uint64_t p_x) const
         {
-            static constexpr size_t index_block_bits = block_bits * 4;
-            static constexpr size_t index_block_shift = block_shift + 2;
+            return p_x - rank(p_x);
+        }
 
-            std::vector<uint64_t> index;
+        uint64_t select0(uint64_t p_r) const
+        {
+            // naive select0.
 
-            uint64_t lhs_count(uint64_t p_x) const
+            uint64_t lo = 0;
+            uint64_t hi = size();
+
+            while (lo < hi)
             {
-                uint64_t ix_part = p_x >> block_shift;
-                uint64_t ix_loc = ix_part >> 2;
-                uint64_t ix_block = ix_part & 3;
-
-                uint64_t ix_word = index[ix_loc];
-                uint64_t r = ix_word >> 32;
-                for (size_t i = 0; i < ix_block; ++i)
+                uint64_t mid = (lo + hi) / 2;
+                //std::cout << "lb"  << '(' << p_r << ')'
+                //    << '\t' << lo << '(' << rank0(lo) << ')'
+                //    << '\t' << mid << '(' << rank0(mid) << ')'
+                //    << '\t' << hi << '(' << rank0(hi) << ')'
+                //    << std::endl;
+                size_t r0 = rank0(mid);
+                if (r0 <= p_r)
                 {
-                    r += ix_word & 1023;
-                    ix_word >>= 10;
+                    lo = mid + 1;
                 }
-                return r;
+                else
+                {
+                    hi = mid;
+                }
             }
-        };
-
-        struct rank_index_maker
-        {
-            rank_index& idx;
-
-            rank_index_maker(rank_index& p_idx)
-                : idx(p_idx)
+            if (lo > 0)
             {
+                return lo - 1;
             }
-        };
-
-        struct sampling_index
-        {
-            static constexpr size_t sample_period = 8192;
-            static constexpr size_t sample_shift = notima::detail::ILog2<sample_period>::value;
-
-            std::vector<uint32_t> samples;
-
-            uint64_t index_block(uint64_t p_r) const
-            {
-                uint64_t j = p_r >> sample_shift;
-                return samples[j];
-            }
-        };
-
-        void make()
-        {
+            return lo;
         }
     };
 }

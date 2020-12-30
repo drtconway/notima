@@ -44,6 +44,23 @@ namespace // anonymous
             }
         }
     }
+
+    void scan_for_zeros(const std::vector<uint64_t>& p_words, std::vector<uint64_t>& p_ones)
+    {
+        for (size_t i = 0; i < p_words.size(); ++i)
+        {
+            uint64_t w = p_words[i];
+            for (size_t j = 0; j < 64; ++j)
+            {
+                uint64_t p = 64*i + j;
+                if ((w & 1) == 0)
+                {
+                    p_ones.push_back(p);
+                }
+                w >>= 1;
+            }
+        }
+    }
 }
 // namespace anonymous
 
@@ -93,6 +110,31 @@ TEST_CASE("Test poppy low-density", "[poppy-test]")
         uint64_t p = ones[i];
         uint64_t r = P.rank(p);
         uint64_t q = P.select(i);
+        //std::cout << i << '\t' << r << '\t' << p << '\t' << q << std::endl;
+        REQUIRE(r == i);
+        REQUIRE(q == p);
+    }
+}
+
+TEST_CASE("Test poppy rank0/select0 mid density", "[poppy-test]")
+{
+    constexpr size_t N = 48;
+    std::vector<uint64_t> words;
+    make_words(19, 0.4, N, words);
+
+    std::vector<uint64_t> zeros;
+    scan_for_zeros(words, zeros);
+
+    notima::poppy P(std::move(words));
+
+    REQUIRE(P.size() == 64*N);
+    REQUIRE(P.size() - P.count() == zeros.size());
+
+    for (size_t i = 0; i < zeros.size(); ++i)
+    {
+        uint64_t p = zeros[i];
+        uint64_t r = P.rank0(p);
+        uint64_t q = P.select0(i);
         //std::cout << i << '\t' << r << '\t' << p << '\t' << q << std::endl;
         REQUIRE(r == i);
         REQUIRE(q == p);
