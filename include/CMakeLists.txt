@@ -9,6 +9,7 @@
 # file list, you know beforehand why your code isn't compiling. 
 set(Notima_INC
     notima/codec8.hpp
+    notima/integer_array.hpp
     notima/poppy.hpp
     notima/radix_array.hpp
     notima/spookyv2.hpp

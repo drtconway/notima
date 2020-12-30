@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Notima_TEST_SRC
     test_fastq.cpp
     test_gzipf.cpp
+    test_integer_array.cpp
     test_kmers.cpp
     test_poppy.cpp
     test_radix_array.cpp
