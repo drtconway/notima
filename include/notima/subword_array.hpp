@@ -22,10 +22,10 @@ namespace notima
         static_assert((WordBits % ValueBits) == 0);
 
         using word_type = typename detail::word_sizes<WordBits>::word_type;
-        using value_type = uint64_t;
 
+        static constexpr size_t value_bits = ValueBits;
         static constexpr size_t ValsPerWord = WordBits / ValueBits;
-        static constexpr value_type ValueMask = (1ULL << ValueBits) - 1;
+        static constexpr uint64_t ValueMask = (1ULL << ValueBits) - 1;
 
         size_t value_count;
         std::vector<word_type> words;

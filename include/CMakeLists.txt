@@ -10,6 +10,7 @@
 set(Notima_INC
     notima/codec8.hpp
     notima/poppy.hpp
+    notima/radix_array.hpp
     notima/spookyv2.hpp
     notima/stats.hpp
     notima/subword_array.hpp
