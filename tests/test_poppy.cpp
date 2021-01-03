@@ -66,7 +66,7 @@ namespace // anonymous
 
 TEST_CASE("Test poppy mid-density", "[poppy-test]")
 {
-    constexpr size_t N = 48;
+    constexpr size_t N = 128;
     std::vector<uint64_t> words;
     make_words(19, 0.4, N, words);
 
