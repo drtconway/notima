@@ -4,6 +4,7 @@
 #include <topgm.hpp>
 #include <notima/codec8.hpp>
 #include <notima/tsv.hpp>
+#include <notima/sparse_array.hpp>
 
 #include <deque>
 #include <map>
@@ -19,51 +20,6 @@ using namespace notima;
 
 namespace // anonymous
 {
-#if 0
-    template <typename T>
-    concept IntegerSet = requires(T t) {
-        { t.size() } -> std::same_as<kmer>;
-        { t.count() } -> std::same_as<size_t>;
-    };
-
-    template <IntegerSet T>
-    concept Rank = requires(T t, kmer x, kmer y) {
-        { t.rank(x) } -> std::same_as<size_t>;
-        { t.rank(x, y) } -> std::same_as<std::pair<size_t,size_t>>;
-    };
-
-    template <IntegerSet T>
-    concept Select = requires(T t, size_t p) {
-        { t.select(p) } -> std::same_as<kmer>;
-    };
-#endif
-
-    template <typename Iterator>
-    void intersperse(Iterator p_begin, Iterator p_end)
-    {
-        const size_t n = p_end - p_begin;
-        for (size_t i = 1; i < n; i += 2)
-        {
-            size_t j = n - i;
-            if (j <= i)
-            {
-                break;
-            }
-            std::swap(*(p_begin + i), *(p_begin + j));
-        }
-    }
-
-    size_t ilog2(size_t n)
-    {
-        size_t j = 0;
-        while (n > 0)
-        {
-            n >>= 1;
-            j += 1;
-        }
-        return j;
-    }
-
     string human(size_t x)
     {
         size_t y = x;

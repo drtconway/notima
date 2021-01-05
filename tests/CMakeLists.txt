@@ -23,6 +23,8 @@ set(Notima_TEST_HEADER
 
 PREPEND(Notima_TEST_SRC)
 
+include_directories(nlohmann_json::nlohmann_json)
+
 # Make an executable target that depends on the test source code we specified
 # above.
 add_executable(TestNotima ${Notima_TEST_SRC} ${Notima_TEST_HEADER})
@@ -32,4 +34,4 @@ enable_testing()
 # Add our test as runnable via CTest
 add_test(NAME TestNotima  COMMAND TestNotima)
 
-target_link_libraries(TestNotima ${ZLIB_LIBRARIES})
+target_link_libraries(TestNotima ${ZLIB_LIBRARIES} nlohmann_json::nlohmann_json)

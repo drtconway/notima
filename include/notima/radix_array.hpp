@@ -96,7 +96,6 @@ namespace notima
             return (rest[p_idx] << bits1) | self[p_idx];
         }
     };
-
 }
 // namespace notima
 

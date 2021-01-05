@@ -144,6 +144,101 @@ namespace notima
         }
     };
 
+    struct sparse_array
+    {
+        static size_t compute_d(size_t B, size_t N)
+        {
+            while (N > 1)
+            {
+                B -= 1;
+                N >>= 1;
+            }
+            return B;
+        }
+
+        struct array_interface
+        {
+            virtual ~array_interface() {}
+
+            virtual size_t rank(uint64_t p_x) const = 0;
+
+            virtual uint64_t select(size_t p_r) const = 0;
+        };
+        using array_ptr = std::shared_ptr<array_interface>;
+
+        template <size_t D>
+        struct sparse_array_impl : array_interface
+        {
+            const sparse_array_d<D> arr;
+
+            sparse_array_impl(const size_t p_B, const size_t p_N,
+                              const std::vector<uint64_t>& p_items)
+                : arr(p_B, p_N, p_items)
+            {
+            }
+
+            virtual size_t rank(uint64_t p_x) const
+            {
+                return arr.rank(p_x);
+            }
+
+            virtual uint64_t select(size_t p_r) const
+            {
+                return arr.select(p_r);
+            }
+        };
+
+        sparse_array(const size_t p_B, const std::vector<uint64_t>& p_items)
+            : B(p_B), N(p_items.size()), D(compute_d(B, N)),
+              m_array(make<1>(B, N, D, p_items))
+        {
+        }
+
+        uint64_t size() const
+        {
+            return (1ULL << B);
+        }
+
+        size_t count() const
+        {
+            return N;
+        }
+
+        size_t rank(uint64_t p_x) const
+        {
+            return m_array->rank(p_x);
+        }
+
+        uint64_t select(size_t p_r) const
+        {
+            return m_array->select(p_r);
+        }
+
+        template <size_t D>
+        static typename std::enable_if<(D < 64),array_ptr>::type
+        make(size_t p_B, size_t p_N, size_t p_D, const std::vector<uint64_t> p_items)
+        {
+            if (p_D == D)
+            {
+                return array_ptr(new sparse_array_impl<D>(p_B, p_N, p_items));
+            }
+            else
+            {
+                return make<D+1>(p_B, p_N, p_D, p_items);
+            }
+        }
+        template <size_t D>
+        static typename std::enable_if<(D >= 64),array_ptr>::type
+        make(size_t p_B, size_t p_N, size_t p_D, const std::vector<uint64_t> p_items)
+        {
+            throw std::runtime_error("Cannot create array");
+        }
+
+        const size_t B;
+        const size_t N;
+        const size_t D;
+        array_ptr m_array;
+    };
 }
 // namespace notima
 
