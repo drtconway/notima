@@ -114,5 +114,30 @@ TEST_CASE("Test medium sparse array", "[sparse-array-test]")
         REQUIRE(y == x);
     }
 
-    std::cout << notima::internal::stats::gather(a) << std::endl;
+    if (0)
+    {
+        std::cout << notima::internal::stats::gather(a) << std::endl;
+    }
 }
+
+TEST_CASE("Test small sparse array with", "[sparse-array-test]")
+{
+    constexpr size_t B = 20;
+    constexpr size_t W = (1ULL << B) - 1;
+    constexpr size_t N = 1001;
+
+    std::vector<uint64_t> items;
+    make_items<B>(19, N, items);
+
+    notima::sparse_array a(B, items);
+    a.with([&](auto& arr){
+        size_t n = arr.count();
+        for (size_t i = 0; i < n; ++i)
+        {
+            uint64_t x = arr.select(i);
+            size_t r = arr.rank(x);
+            REQUIRE(r == i);
+        }
+    });
+}
+

@@ -235,6 +235,37 @@ namespace notima
             throw std::runtime_error("Cannot create array");
         }
 
+
+        template <typename X>
+        void with(X p_func)
+        {
+            with<1>(*this, p_func);
+        }
+
+        template <size_t D, typename X>
+        static
+        typename std::enable_if<(D < 64), void>::type
+        with(const sparse_array& p_arr, X p_func)
+        {
+            using impl = notima::sparse_array::sparse_array_impl<D>;
+            const impl* ptr = dynamic_cast<const impl*>(p_arr.m_array.get());
+            if (ptr)
+            {
+                p_func(ptr->arr);
+            }
+            else
+            {
+                with<D+1,X>(p_arr, p_func);
+            }
+        }
+        template <size_t D, typename X>
+        static
+        typename std::enable_if<(D >= 64), void>::type
+        with(const sparse_array& p_arr, X p_func)
+        {
+            throw std::runtime_error("gather_sparse: D out of range");
+        }
+
         const size_t B;
         const size_t N;
         const size_t D;
