@@ -2,6 +2,7 @@
 #define NOTIMA_SPARSE_ARRAY_HPP
 
 #include <cmath>
+#include <memory>
 #include <notima/integer_array.hpp>
 #include <notima/poppy.hpp>
 
