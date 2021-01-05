@@ -2,6 +2,9 @@
 #include <notima/poppy.hpp>
 #include <random>
 
+#include <iostream>
+#include <notima/internal/stats.hpp>
+
 namespace // anonymous
 {
     uint64_t rnd_word(std::mt19937& p_rng, double p_density)
@@ -87,6 +90,11 @@ TEST_CASE("Test poppy mid-density", "[poppy-test]")
         REQUIRE(r == i);
         REQUIRE(q == p);
     }
+
+    if (0)
+    {
+        std::cout << notima::internal::stats::gather(P);
+    }
 }
 
 TEST_CASE("Test poppy low-density", "[poppy-test]")
@@ -102,8 +110,6 @@ TEST_CASE("Test poppy low-density", "[poppy-test]")
 
     REQUIRE(P.size() == 64*N);
     REQUIRE(P.count() == ones.size());
-
-    std::cout << "P.count() = " << P.count() << std::endl;
 
     for (size_t i = 0; i < ones.size(); ++i)
     {

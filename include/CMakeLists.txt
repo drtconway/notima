@@ -17,6 +17,7 @@ set(Notima_INC
     notima/stats.hpp
     notima/subword_array.hpp
     notima/wordy.hpp
+    notima/internal/stats.hpp
     fastq.hpp
     files.hpp
     gzipf.hpp

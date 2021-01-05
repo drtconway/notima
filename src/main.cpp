@@ -5,6 +5,7 @@
 #include <notima/codec8.hpp>
 #include <notima/tsv.hpp>
 #include <notima/sparse_array.hpp>
+#include <notima/internal/stats.hpp>
 
 #include <deque>
 #include <map>
@@ -358,11 +359,43 @@ namespace // anonymous
 
     void doit(const string& p_str)
     {
-        random_device rnd_dev;
-        mt19937 rng(rnd_dev());
+        const size_t K = 25;
+        gzip::input inp(p_str);
 
-        const size_t K = 11;
+        fastq rd;
+        vector<kmer> fwd;
+        vector<kmer> rev;
 
+        std::vector<kmer> all;
+
+        size_t rn = 0;
+        size_t brk = 65536;
+        while (rd.read(inp))
+        {
+            ++rn;
+            fwd.clear();
+            rev.clear();
+            kmers::make(K, rd.seq(), fwd, rev);
+            all.insert(all.end(), fwd.begin(), fwd.end());
+            all.insert(all.end(), rev.begin(), rev.end());
+            if (all.size() >= brk)
+            {
+                std::sort(all.begin(), all.end());
+                all.erase(std::unique(all.begin(), all.end()), all.end());
+                brk *= 2;
+                if (all.size() > (1ULL << 24))
+                {
+                    break;
+                }
+            }
+        }
+
+        std::sort(all.begin(), all.end());
+        all.erase(std::unique(all.begin(), all.end()), all.end());
+
+        notima::sparse_array A(2*K, all);
+
+        std::cout << notima::internal::stats::gather(A) << std::endl;
         return;
     }
 }

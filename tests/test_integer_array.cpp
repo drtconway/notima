@@ -2,6 +2,9 @@
 
 #include <notima/integer_array.hpp>
 
+#include <iostream>
+#include <notima/internal/stats.hpp>
+
 namespace // anonymous
 {
     template <size_t B>
@@ -23,6 +26,11 @@ namespace // anonymous
         {
             uint64_t x = (2381616247ULL * i + 2549443283ULL) & M;
             REQUIRE(a[i] == x);
+        }
+
+        if (0)
+        {
+            std::cout << notima::internal::stats::gather(a) << std::endl;
         }
     }
 }

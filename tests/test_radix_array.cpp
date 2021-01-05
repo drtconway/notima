@@ -3,6 +3,8 @@
 #include <notima/subword_array.hpp>
 
 #include <vector>
+#include <iostream>
+#include <notima/internal/stats.hpp>
 
 namespace // anonymous
 {
@@ -83,5 +85,10 @@ TEST_CASE("Test 3 level radix array", "[radix-array-test]")
     {
         uint32_t x = 2381616247ULL * i + 2549443283ULL;
         REQUIRE(R[i] == x);
+    }
+
+    if (0)
+    {
+        std::cout << notima::internal::stats::gather(R) << std::endl;
     }
 }

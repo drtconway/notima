@@ -1,6 +1,9 @@
 #include "catch.hpp"
 #include <notima/subword_array.hpp>
 
+#include <notima/internal/stats.hpp>
+#include <iostream>
+
 namespace // anonymous
 {
     template <size_t B, size_t W>
@@ -61,6 +64,11 @@ TEST_CASE("Test simple subword array", "[subword-array-test]")
     {
         uint64_t x = i & M;
         REQUIRE(A[i] == x);
+    }
+
+    if (0)
+    {
+        std::cout << notima::internal::stats::gather(A) << std::endl;
     }
 }
 

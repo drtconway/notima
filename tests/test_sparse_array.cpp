@@ -3,6 +3,9 @@
 #include <random>
 #include <set>
 
+#include <iostream>
+#include <notima/internal/stats.hpp>
+
 namespace // anonymous
 {
     template <size_t B>
@@ -110,4 +113,6 @@ TEST_CASE("Test medium sparse array", "[sparse-array-test]")
         REQUIRE(r == i);
         REQUIRE(y == x);
     }
+
+    std::cout << notima::internal::stats::gather(a) << std::endl;
 }
