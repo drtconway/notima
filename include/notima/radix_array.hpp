@@ -2,6 +2,7 @@
 #define NOTIMA_RADIX_ARRAY_HPP
 
 #include <type_traits>
+#include <notima/internal/stats.hpp>
 
 namespace notima
 {
@@ -96,6 +97,54 @@ namespace notima
             return (rest[p_idx] << bits1) | self[p_idx];
         }
     };
+
+    namespace internal
+    {
+        template <typename T>
+        void gather_radix(const notima::radix_array<T>& p_obj, nlohmann::json& p_ss)
+        {
+            nlohmann::json s = gather<T>{}(p_obj.self);
+            p_ss.push_back(s);
+        }
+
+        template <typename T1, typename T2, typename... Ts>
+        void gather_radix(const notima::radix_array<T1,T2,Ts...>& p_obj, nlohmann::json& p_ss)
+        {
+            nlohmann::json s = gather<T1>{}(p_obj.self);
+            p_ss.push_back(s);
+            gather_radix(p_obj.rest, p_ss);
+        }
+
+        template <typename... Ts>
+        struct gather<notima::radix_array<Ts...>>
+        {
+            nlohmann::json operator()(const notima::radix_array<Ts...>& p_obj) const
+            {
+                nlohmann::json s;
+                s["radix_array"]["depth"] = sizeof...(Ts);
+                s["radix_array"]["size"] = sizeof...(Ts);
+                s["radix_array"]["parts"] = nlohmann::json::array();
+                gather_radix(p_obj, s["radix_array"]["parts"]);
+                uint64_t m = 0;
+                for (size_t i = 0; i < s["radix_array"]["parts"].size(); ++i)
+                {
+                    const nlohmann::json& p = s["radix_array"]["parts"][i];
+
+                    if (p.contains("vector"))
+                    {
+                        m += p["vector"]["memory"].get<uint64_t>();
+                    }
+                    else
+                    {
+                        m += p["subword"]["memory"].get<uint64_t>();
+                    }
+                }
+                s["radix_array"]["memory"] = m;
+                return s;
+            }
+        };
+    }
+    // namespace internal
 }
 // namespace notima
 

@@ -2,6 +2,7 @@
 #define NOTIMA_SUBWORD_ARRAY_HPP
 
 #include <vector>
+#include <notima/internal/stats.hpp>
 
 namespace notima
 {
@@ -62,6 +63,24 @@ namespace notima
             return (words[w] >> (b*ValueBits)) & ValueMask;
         }
     };
+
+    namespace internal
+    {
+        template <size_t B, size_t W>
+        struct gather<notima::subword_array<B,W>>
+        {
+            nlohmann::json operator()(const notima::subword_array<B,W>& p_obj) const
+            {
+                nlohmann::json s;
+                s["subword"]["B"] = B;
+                s["subword"]["W"] = W;
+                s["subword"]["size"] = p_obj.size();
+                s["subword"]["memory"] = p_obj.words.capacity()*sizeof(W);
+                return s;
+            }
+        };
+    }
+    // namespace internal
 }
 // namespace notima
 

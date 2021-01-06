@@ -3,6 +3,7 @@
 
 #include <notima/bit_array.hpp>
 #include <notima/poppy.hpp>
+#include <notima/internal/stats.hpp>
 
 //#include <bit>
 
@@ -64,6 +65,27 @@ namespace notima
             return bitvec.words;
         }
     };
+
+    namespace internal
+    {
+        template <>
+        struct gather<notima::vbit_array>
+        {
+            nlohmann::json operator()(const notima::vbit_array& p_obj) const
+            {
+                nlohmann::json s;
+                s["vbit"]["size"] = p_obj.size();
+                s["vbit"]["bits"] = notima::internal::stats::gather(p_obj.bits.words);
+                s["vbit"]["index"] = notima::internal::stats::gather(p_obj.index);
+                uint64_t m = 0;
+                m += s["vbit"]["index"]["poppy"]["memory"].get<uint64_t>();
+                m += s["vbit"]["bits"]["vector"]["memory"].get<uint64_t>();
+                s["vbit"]["memory"] = m;
+                return s;
+            }
+        };
+    }
+    // namespace internal
 }
 // namespace notima
 

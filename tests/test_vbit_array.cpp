@@ -74,15 +74,6 @@ TEST_CASE("Test a vbit array", "[vbit-array-test]")
     for (size_t i = 0; i < N; ++i)
     {
         uint64_t x = A[i];
-        if (x != items[i])
-        {
-            size_t r0 = A.index.rank0(A.index.select(i));
-            size_t r1 = A.index.rank0(A.index.select(i + 1));
-            std::cout << i
-                << '\t' << r0
-                << '\t' << r1
-                << std::endl;
-        }
         REQUIRE(x == items[i]);
     }
 

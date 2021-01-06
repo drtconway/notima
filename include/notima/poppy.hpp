@@ -3,7 +3,8 @@
 
 #include <type_traits>
 
-#include "notima/wordy.hpp"
+#include <notima/wordy.hpp>
+#include <notima/internal/stats.hpp>
 
 #include <iostream>
 
@@ -285,6 +286,25 @@ namespace notima
             return lo;
         }
     };
+
+    namespace internal
+    {
+        template <>
+        struct gather<notima::poppy>
+        {
+            nlohmann::json operator()(const notima::poppy& p_obj) const
+            {
+                nlohmann::json s;
+                s["poppy"]["size"] = p_obj.size();
+                s["poppy"]["count"] = p_obj.count();
+                s["poppy"]["naive"] = gather<std::vector<uint64_t>>{}(p_obj.I.index);
+                s["poppy"]["poppy"] = gather<std::vector<uint64_t>>{}(p_obj.J.index);
+                s["poppy"]["memory"] = s["poppy"]["poppy"]["vector"]["memory"];
+                return s;
+            }
+        };
+    }
+    // namespace internal
 }
 // namespace notima
 

@@ -5,6 +5,7 @@
 #include <memory>
 #include <notima/integer_array.hpp>
 #include <notima/poppy.hpp>
+#include <notima/internal/stats.hpp>
 
 namespace notima
 {
@@ -271,6 +272,58 @@ namespace notima
         const size_t D;
         array_ptr m_array;
     };
+
+    namespace internal
+    {
+        template <size_t D>
+        struct gather<notima::sparse_array_d<D>>
+        {
+            nlohmann::json operator()(const notima::sparse_array_d<D>& p_obj) const
+            {
+                nlohmann::json s;
+                s["sparse"]["D"] = D;
+                s["sparse"]["size"] = p_obj.size();
+                s["sparse"]["count"] = p_obj.count();
+                s["sparse"]["hi"] = notima::internal::stats::gather(p_obj.hi_bits);
+                s["sparse"]["lo"] = notima::internal::stats::gather(p_obj.lo_bits);
+                uint64_t m = 0;
+                m += s["sparse"]["hi"]["poppy"]["memory"].get<uint64_t>();
+                m += s["sparse"]["lo"]["radix_array"]["memory"].get<uint64_t>();
+                s["sparse"]["memory"] = m;
+                return s;
+            }
+        };
+
+        template <>
+        struct gather<notima::sparse_array>
+        {
+            template <size_t D>
+            nlohmann::json gather_sparse(const notima::sparse_array::array_interface& p_obj) const
+            {
+                using impl = notima::sparse_array::sparse_array_impl<D>;
+                const impl* ptr = dynamic_cast<const impl*>(&p_obj);
+                if (ptr)
+                {
+                    return notima::internal::stats::gather(ptr->arr);
+                }
+                else
+                {
+                    return gather_sparse<D+1>(p_obj);
+                }
+            }
+            template <>
+            nlohmann::json gather_sparse<64>(const notima::sparse_array::array_interface& p_obj) const
+            {
+                throw std::runtime_error("gather_sparse: D out of range");
+            }
+
+            nlohmann::json operator()(const notima::sparse_array& p_obj) const
+            {
+                return gather_sparse<1>(*p_obj.m_array);
+            }
+        };
+    }
+    // namespace internal
 }
 // namespace notima
 
