@@ -36,6 +36,11 @@ namespace notima
 
         bit_array& push_back(size_t p_width, uint64_t p_x)
         {
+            if (p_width == 0)
+            {
+                return *this;
+            }
+
             const uint64_t M = (1ULL << p_width) - 1;
             size_t idx0 = size_;
             size_t idx1 = size_ + p_width;
