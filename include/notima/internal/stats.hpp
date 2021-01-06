@@ -8,6 +8,7 @@
 #include <notima/radix_array.hpp>
 #include <notima/poppy.hpp>
 #include <notima/sparse_array.hpp>
+#include <notima/vbit_array.hpp>
 
 namespace notima
 {
@@ -146,6 +147,21 @@ namespace notima
             gather(const notima::sparse_array& p_obj)
             {
                 return gather_sparse<1>(*p_obj.m_array);
+            }
+
+            static
+            nlohmann::json
+            gather(const notima::vbit_array& p_obj)
+            {
+                nlohmann::json s;
+                s["vbit"]["size"] = p_obj.size();
+                s["vbit"]["bits"] = gather(p_obj.bits.words);
+                s["vbit"]["index"] = gather(p_obj.index);
+                uint64_t m = 0;
+                m += s["vbit"]["index"]["poppy"]["memory"].get<uint64_t>();
+                m += s["vbit"]["bits"]["vector"]["memory"].get<uint64_t>();
+                s["vbit"]["memory"] = m;
+                return s;
             }
         };
     }

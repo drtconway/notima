@@ -16,6 +16,7 @@ set(Notima_TEST_SRC
     test_stats.cpp
     test_subword_array.cpp
     test_tsv.cpp
+    test_vbit_array.cpp
     test_wordy.cpp
 )
 set(Notima_TEST_HEADER
