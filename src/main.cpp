@@ -294,6 +294,57 @@ namespace // anonymous
         }
     };
 
+    template <typename Itr>
+    struct counts_iterator
+    {
+        Itr cur;
+        Itr end;
+        Itr nxt;
+        size_t cnt;
+
+        counts_iterator(Itr p_begin, Itr p_end)
+            : cur(p_begin), end(p_end), nxt(p_begin), cnt(0)
+        {
+            update();
+        }
+
+        size_t operator*() const
+        {
+            return cnt - 1;
+        }
+
+        counts_iterator& operator++()
+        {
+            update();
+            return *this;
+        }
+
+        bool operator==(const counts_iterator& other) const
+        {
+            return cur == other.cur && end == other.end;
+        }
+
+        bool operator!=(const counts_iterator& other) const
+        {
+            return cur != other.cur || end != other.end;
+        }
+
+        void update()
+        {
+            cur = nxt;
+            if (cur == end)
+            {
+                return;
+            }
+            cnt = 0;
+            while (nxt != end && *nxt == *cur)
+            {
+                ++cnt;
+                ++nxt;
+            }
+        }
+    };
+
     void doit0(const string& p_str)
     {
         random_device rnd_dev;
@@ -369,7 +420,6 @@ namespace // anonymous
         std::vector<kmer> all;
 
         size_t rn = 0;
-        size_t brk = 65536;
         while (rd.read(inp))
         {
             ++rn;
@@ -378,26 +428,25 @@ namespace // anonymous
             kmers::make(K, rd.seq(), fwd, rev);
             all.insert(all.end(), fwd.begin(), fwd.end());
             all.insert(all.end(), rev.begin(), rev.end());
-            if (all.size() >= brk)
+            if (all.size() > (1ULL << 24))
             {
-                std::sort(all.begin(), all.end());
-                all.erase(std::unique(all.begin(), all.end()), all.end());
-                brk *= 2;
-                if (all.size() > (1ULL << 24))
-                {
-                    break;
-                }
+                break;
             }
         }
 
         std::sort(all.begin(), all.end());
-        all.erase(std::unique(all.begin(), all.end()), all.end());
 
-        notima::sparse_array A(2*K, all);
+        using itr_type = std::vector<kmer>::const_iterator;
+        using cnt_type = counts_iterator<itr_type>;
 
-        std::cout << notima::internal::stats::gather(A) << std::endl;
-        return;
+        cnt_type b(all.begin(), all.end());
+        cnt_type e(all.end(), all.end());
+        for (auto itr = b; itr != e; ++itr)
+        {
+            std::cout << *itr << std::endl;
+        }
     }
+
 }
 // namespace anonymous
 

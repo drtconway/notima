@@ -33,7 +33,13 @@ namespace notima
         notima::poppy index;
 
         vbit_array(const std::vector<uint64_t>& p_items)
-            : index(make(bits, p_items))
+            : index(make(bits, p_items.begin(), p_items.end()))
+        {
+        }
+
+        template <typename Itr>
+        vbit_array(Itr p_begin, Itr p_end)
+            : index(make(bits, p_begin, p_end))
         {
         }
 
@@ -49,14 +55,15 @@ namespace notima
             return bits[{r0, r1}];
         }
 
-        static std::vector<uint64_t> make(notima::bit_array& p_bits, const std::vector<uint64_t>& p_items)
+        template <typename Itr>
+        static std::vector<uint64_t> make(notima::bit_array& p_bits, Itr p_begin, Itr p_end)
         {
             notima::bit_array bitvec;
 
             bitvec.push_back(1);
-            for (size_t i = 0; i < p_items.size(); ++i)
+            for (auto itr = p_begin; itr != p_end; ++itr)
             {
-                uint64_t x = p_items[i];
+                uint64_t x = *itr;
                 size_t b = detail::bit::bit_width(x);
                 bitvec.push_back(b, 0);
                 bitvec.push_back(1);
