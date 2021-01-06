@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Explicitly list the test source code and headers. The Catch header-only unit
 # test framework is stored in with the test source.
 set(Notima_TEST_SRC
+    test_bit_array.cpp
     test_fastq.cpp
     test_gzipf.cpp
     test_integer_array.cpp
