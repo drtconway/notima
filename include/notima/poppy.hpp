@@ -297,9 +297,13 @@ namespace notima
                 nlohmann::json s;
                 s["poppy"]["size"] = p_obj.size();
                 s["poppy"]["count"] = p_obj.count();
-                s["poppy"]["naive"] = gather<std::vector<uint64_t>>{}(p_obj.I.index);
-                s["poppy"]["poppy"] = gather<std::vector<uint64_t>>{}(p_obj.J.index);
-                s["poppy"]["memory"] = s["poppy"]["poppy"]["vector"]["memory"];
+                s["poppy"]["words"] = notima::internal::stats::gather(p_obj.I.index);
+                s["poppy"]["naive"] = notima::internal::stats::gather(p_obj.I.index);
+                s["poppy"]["poppy"] = notima::internal::stats::gather(p_obj.J.index);
+                uint64_t m = 0;
+                m += s["poppy"]["poppy"]["vector"]["memory"].get<uint64_t>();;
+                m += s["poppy"]["words"]["vector"]["memory"].get<uint64_t>();;
+                s["poppy"]["memory"] = m;
                 return s;
             }
         };

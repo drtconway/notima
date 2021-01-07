@@ -40,7 +40,13 @@ namespace notima
 
         sparse_array_d(const size_t p_B, const size_t p_N,
                        const std::vector<uint64_t>& p_items)
-            : B(p_B), N(p_N), hi_bits(make(p_B, lo_bits, p_items))
+            : B(p_B), N(p_N), hi_bits(make(p_B, lo_bits, p_items.begin(), p_items.end()))
+        {
+        }
+
+        template <typename Itr>
+        sparse_array_d(const size_t p_B, const size_t p_N, Itr p_begin, Itr p_end)
+            : B(p_B), N(p_N), hi_bits(make(p_B, lo_bits, p_begin, p_end))
         {
         }
 
@@ -72,8 +78,8 @@ namespace notima
             return (hi_part << hi_shift) | lo_bits[p_r];
         }
 
-        static std::vector<uint64_t> make(size_t p_B, notima::integer_array<D>& p_lo_bits,
-                         const std::vector<uint64_t>& p_elems)
+        template <typename Itr>
+        static std::vector<uint64_t> make(size_t p_B, notima::integer_array<D>& p_lo_bits, Itr p_begin, Itr p_end)
         {
             notima::integer_array<1> bitvec;
 
@@ -82,9 +88,9 @@ namespace notima
 
             bitvec.push_back(1);
 
-            for (size_t i = 0; i < p_elems.size(); ++i)
+            for (auto itr = p_begin; itr != p_end; ++itr)
             {
-                uint64_t x = p_elems[i];
+                uint64_t x = *itr;
                 uint64_t hi_part = x >> hi_shift;
                 uint64_t lo_part = x & lo_mask;
 
@@ -173,9 +179,10 @@ namespace notima
         {
             const sparse_array_d<D> arr;
 
+            template <typename Itr>
             sparse_array_impl(const size_t p_B, const size_t p_N,
-                              const std::vector<uint64_t>& p_items)
-                : arr(p_B, p_N, p_items)
+                              Itr p_begin, Itr p_end)
+                : arr(p_B, p_N, p_begin, p_end)
             {
             }
 
@@ -192,7 +199,7 @@ namespace notima
 
         sparse_array(const size_t p_B, const std::vector<uint64_t>& p_items)
             : B(p_B), N(p_items.size()), D(compute_d(B, N)),
-              m_array(make<1>(B, N, D, p_items))
+              m_array(make<1,typename std::vector<uint64_t>::const_iterator>(B, N, D, p_items.begin(), p_items.end()))
         {
         }
 
@@ -216,22 +223,22 @@ namespace notima
             return m_array->select(p_r);
         }
 
-        template <size_t D>
+        template <size_t D, typename Itr>
         static typename std::enable_if<(D < 64),array_ptr>::type
-        make(size_t p_B, size_t p_N, size_t p_D, const std::vector<uint64_t> p_items)
+        make(size_t p_B, size_t p_N, size_t p_D, Itr p_begin, Itr p_end)
         {
             if (p_D == D)
             {
-                return array_ptr(new sparse_array_impl<D>(p_B, p_N, p_items));
+                return array_ptr(new sparse_array_impl<D>(p_B, p_N, p_begin, p_end));
             }
             else
             {
-                return make<D+1>(p_B, p_N, p_D, p_items);
+                return make<D+1,Itr>(p_B, p_N, p_D, p_begin, p_end);
             }
         }
-        template <size_t D>
+        template <size_t D, typename Itr>
         static typename std::enable_if<(D >= 64),array_ptr>::type
-        make(size_t p_B, size_t p_N, size_t p_D, const std::vector<uint64_t> p_items)
+        make(size_t p_B, size_t p_N, size_t p_D, Itr p_begin, Itr p_end)
         {
             throw std::runtime_error("Cannot create array");
         }

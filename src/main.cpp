@@ -5,6 +5,7 @@
 #include <notima/codec8.hpp>
 #include <notima/tsv.hpp>
 #include <notima/sparse_array.hpp>
+#include <notima/vbit_array.hpp>
 #include <notima/internal/stats.hpp>
 
 #include <deque>
@@ -295,6 +296,47 @@ namespace // anonymous
     };
 
     template <typename Itr>
+    struct kmers_iterator
+    {
+        Itr cur;
+        Itr end;
+
+        kmers_iterator(Itr p_begin, Itr p_end)
+            : cur(p_begin), end(p_end)
+        {
+        }
+
+        uint64_t operator*() const
+        {
+            return *cur;
+        }
+
+        kmers_iterator& operator++()
+        {
+            if (cur == end)
+            {
+                return *this;
+            }
+            uint64_t x = *cur;
+            while (cur != end && *cur == x)
+            {
+                ++cur;
+            }
+            return *this;
+        }
+
+        bool operator==(const kmers_iterator& other) const
+        {
+            return cur == other.cur && end == other.end;
+        }
+
+        bool operator!=(const kmers_iterator& other) const
+        {
+            return cur != other.cur || end != other.end;
+        }
+    };
+
+    template <typename Itr>
     struct counts_iterator
     {
         Itr cur;
@@ -439,12 +481,24 @@ namespace // anonymous
         using itr_type = std::vector<kmer>::const_iterator;
         using cnt_type = counts_iterator<itr_type>;
 
-        cnt_type b(all.begin(), all.end());
-        cnt_type e(all.end(), all.end());
-        for (auto itr = b; itr != e; ++itr)
+        if (0)
         {
-            std::cout << *itr << std::endl;
+            cnt_type b(all.begin(), all.end());
+            cnt_type e(all.end(), all.end());
+            uint64_t t = 0;
+            std::map<size_t,size_t> H;
+            for (auto itr = b; itr != e; ++itr)
+            {
+                H[*itr] += 1;
+                t += 1;
+            }
+            for (auto itr = H.begin(); itr != H.end(); ++itr)
+            {
+                std::cout << itr->first << '\t' << itr->second << std::endl;
+            }
+            std::cout << all.size() << '\t' << t << std::endl;
         }
+        notima::vbit_array A(cnt_type(all.begin(), all.end()), cnt_type(all.end(), all.end()));
     }
 
 }
