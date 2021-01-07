@@ -28,7 +28,7 @@ namespace // anonymous
             REQUIRE(a[i] == x);
         }
 
-        if (0)
+        if (1)
         {
             std::cout << notima::internal::stats::gather(a) << std::endl;
         }

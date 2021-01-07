@@ -203,6 +203,13 @@ namespace notima
         {
         }
 
+        template <typename Itr>
+        sparse_array(const size_t p_B, const size_t p_N, Itr p_begin, Itr p_end)
+            : B(p_B), N(p_N), D(compute_d(B, N)),
+              m_array(make<1,Itr>(B, N, D, p_begin, p_end))
+        {
+        }
+
         uint64_t size() const
         {
             return (1ULL << B);
@@ -295,7 +302,7 @@ namespace notima
                 s["sparse"]["lo"] = notima::internal::stats::gather(p_obj.lo_bits);
                 uint64_t m = 0;
                 m += s["sparse"]["hi"]["poppy"]["memory"].get<uint64_t>();
-                m += s["sparse"]["lo"]["radix_array"]["memory"].get<uint64_t>();
+                m += s["sparse"]["lo"]["iarray"]["memory"].get<uint64_t>();
                 s["sparse"]["memory"] = m;
                 return s;
             }

@@ -123,6 +123,37 @@ namespace notima
     {
     };
 
+    namespace internal
+    {
+        template <size_t Bits, typename ArrayType>
+        struct gather<notima::integer_array<Bits,ArrayType>>
+        {
+            nlohmann::json operator()(const notima::integer_array<Bits,ArrayType>& p_obj) const
+            {
+                nlohmann::json s;
+                s["iarray"]["bits"] = Bits;
+                s["iarray"]["size"] = p_obj.size();
+                s["iarray"]["impl"] = notima::internal::stats::gather(static_cast<const ArrayType&>(p_obj));
+                const nlohmann::json& iarr = s["iarray"]["impl"];
+                uint64_t m = 0;
+                if (iarr.contains("radix_array"))
+                {
+                    m += iarr["radix_array"]["memory"].get<uint64_t>();;
+                }
+                else if (iarr.contains("subword"))
+                {
+                    m += iarr["subword"]["memory"].get<uint64_t>();;
+                }
+                else
+                {
+                    m += iarr["vector"]["memory"].get<uint64_t>();;
+                }
+                s["iarray"]["memory"] = m;
+                return s;
+            }
+        };
+    }
+    // namespace internal
 }
 // namespace notima
 

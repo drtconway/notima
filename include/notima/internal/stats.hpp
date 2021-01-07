@@ -12,7 +12,9 @@ namespace notima
         {
             nlohmann::json operator()(const T& p_ob) const
             {
-                throw std::logic_error("no specialization");
+                std::string msg = "no specialization for: ";
+                msg += std::string(typeid(T).name());
+                throw std::logic_error(msg);
             }
         };
 

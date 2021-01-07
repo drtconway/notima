@@ -114,7 +114,7 @@ TEST_CASE("Test medium sparse array", "[sparse-array-test]")
         REQUIRE(y == x);
     }
 
-    if (0)
+    if (1)
     {
         std::cout << notima::internal::stats::gather(a) << std::endl;
     }
