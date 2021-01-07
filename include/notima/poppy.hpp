@@ -3,6 +3,7 @@
 
 #include <type_traits>
 
+#include <notima/stats.hpp>
 #include <notima/wordy.hpp>
 #include <notima/internal/stats.hpp>
 
@@ -297,13 +298,27 @@ namespace notima
                 nlohmann::json s;
                 s["poppy"]["size"] = p_obj.size();
                 s["poppy"]["count"] = p_obj.count();
-                s["poppy"]["words"] = notima::internal::stats::gather(p_obj.I.index);
+                s["poppy"]["words"] = notima::internal::stats::gather(p_obj.words);
                 s["poppy"]["naive"] = notima::internal::stats::gather(p_obj.I.index);
                 s["poppy"]["poppy"] = notima::internal::stats::gather(p_obj.J.index);
                 uint64_t m = 0;
                 m += s["poppy"]["poppy"]["vector"]["memory"].get<uint64_t>();;
                 m += s["poppy"]["words"]["vector"]["memory"].get<uint64_t>();;
                 s["poppy"]["memory"] = m;
+                if (1)
+                {
+                    std::vector<uint64_t> d(65);
+                    for (auto itr = p_obj.words.begin(); itr != p_obj.words.end(); ++itr)
+                    {
+                        uint64_t c = notima::wordy::popcount(*itr);
+                        d[c] += 1;
+                    }
+                    s["poppy"]["density"]["average"] = double(p_obj.count())/double(p_obj.size());
+                    for (uint64_t i = 0; i <= 64; ++i)
+                    {
+                        s["poppy"]["density"]["word"][i] = d[i];
+                    }
+                }
                 return s;
             }
         };

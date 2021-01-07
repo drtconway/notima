@@ -470,7 +470,7 @@ namespace // anonymous
             kmers::make(K, rd.seq(), fwd, rev);
             all.insert(all.end(), fwd.begin(), fwd.end());
             all.insert(all.end(), rev.begin(), rev.end());
-            if (all.size() > (1ULL << 24))
+            if (all.size() > (1ULL << 25))
             {
                 break;
             }

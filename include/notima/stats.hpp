@@ -8,6 +8,33 @@ namespace notima
 {
     struct stats
     {
+        struct combinatoric
+        {
+            static double lfactorial(uint64_t p_n)
+            {
+                return std::lgamma(p_n + 1);
+            }
+
+            static double lchoose(uint64_t p_n, uint64_t p_k)
+            {
+                if (p_k == 0 || p_k == p_n)
+                {
+                    return 0;
+                }
+                return lfactorial(p_n) - (lfactorial(p_k) + lfactorial(p_n - p_k));
+            }
+
+            static double ldbinom(uint64_t p_k, uint64_t p_n, double p_p)
+            {
+                return lchoose(p_n, p_k) + p_k * std::log(p_p) + (p_n-p_k) * std::log1p(-p_p);
+            }
+
+            static double ladd(double p_lx, double p_ly)
+            {
+                return 0;
+            }
+        };
+
         template <typename T = double>
         struct empirical_distribution
         {
