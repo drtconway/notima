@@ -12,6 +12,7 @@ set(Notima_TEST_SRC
     test_kmers.cpp
     test_poppy.cpp
     test_radix_array.cpp
+    test_rrr_array.cpp
     test_sparse_array.cpp
     test_stats.cpp
     test_subword_array.cpp
