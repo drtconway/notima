@@ -110,6 +110,12 @@ namespace notima
                 size_t r = 0;
                 do
                 {
+                    // NB once <bit> is readily available,
+                    // we can improve the loop by clearing
+                    // bits in x, and using
+                    //      b = std::bit_width(x)
+                    // to drive the loop.
+
                     uint64_t l = 1ULL << b;
                     uint64_t u = ((1ULL << n) - 1) << (b - n);
                     if (x >= (w|l))
@@ -157,18 +163,6 @@ namespace notima
                 }
                 x |= (1ULL << n) - 1;
                 return x;
-            }
-
-            static std::string bin(uint64_t x)
-            {
-                std::string r;
-                do
-                {
-                    r.push_back("01"[x & 1]);
-                    x >>= 1;
-                }
-                while (x > 0);
-                return std::string(r.rbegin(), r.rend());
             }
         };
     }

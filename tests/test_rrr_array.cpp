@@ -5,23 +5,60 @@
 
 #include <iostream>
 #include <notima/internal/stats.hpp>
+#include <notima/wordy.hpp>
 
 namespace // anonymous
 {
-    template <size_t B>
-    void make_items(uint64_t p_seed, size_t p_n, std::vector<uint64_t>& p_items)
+    static std::string bin(uint64_t x)
     {
-        constexpr uint64_t M = (1ULL << B) - 1;
+        std::string r;
+        do
+        {
+            r.push_back("01"[x & 1]);
+            x >>= 1;
+        }
+        while (x > 0);
+        return std::string(r.rbegin(), r.rend());
+    }
 
+    template <size_t B>
+    void make_items(size_t p_n, std::vector<uint64_t>& p_items)
+    {
+        uint64_t x = (1ULL << p_n) - 1;
+        for (uint64_t i = 0; i < notima::detail::binom[B][p_n]; ++i)
+        {
+            REQUIRE(notima::wordy::popcount(x) == p_n);
+            p_items.push_back(x);
+            uint64_t t = (x | (x - 1)) + 1;
+            uint64_t w = t | ((((t & -t) / (x & -x)) >> 1) - 1);
+            REQUIRE(notima::wordy::popcount(w) == p_n);
+            REQUIRE(w > x);
+            x = w;
+        }
+    }
+
+    template <size_t B, size_t N>
+    void make_some_items(size_t p_seed, size_t p_j, std::vector<uint64_t>& p_items)
+    {
         std::mt19937 rng(p_seed);
-        std::uniform_real_distribution<> U(0, M);
+
+        std::vector<size_t> pos;
+        for (size_t i = 0; i < B; ++i)
+        {
+            pos.push_back(i);
+        }
 
         std::set<uint64_t> tmp;
-        while (tmp.size() < p_n)
+        while (tmp.size() < p_j)
         {
-            tmp.insert(U(rng));
+            uint64_t x = 0;
+            std::shuffle(pos.begin(), pos.end(), rng);
+            for (size_t i = 0; i < N; ++i)
+            {
+                x |= 1ULL << pos[i];
+            }
+            tmp.insert(x);
         }
-        p_items.clear();
         p_items.insert(p_items.end(), tmp.begin(), tmp.end());
     }
 
@@ -44,10 +81,49 @@ namespace // anonymous
         res.insert(res.end(), rev.rbegin(), rev.rend());
         return res;
     }
+
+    template <size_t B, size_t N>
+    void block_ordinal_test()
+    {
+        std::vector<uint64_t> items;
+        make_items<B>(N, items);
+        notima::detail::block_ordinal<B> X(N);
+
+        for (size_t i = 0; i < items.size(); ++i)
+        {
+            REQUIRE(X.select(i) == items[i]);
+        }
+
+        for (size_t i = 0; i <= (1ULL << B); ++i)
+        {
+            size_t r = slow_rank(items, i);
+            REQUIRE(X.rank(i) == r);
+        }
+    }
+
+    template <size_t B, size_t N>
+    void large_block_ordinal_test()
+    {
+        constexpr size_t J = 1001;
+        std::vector<uint64_t> items;
+        make_some_items<B,N>(19, J, items);
+        notima::detail::block_ordinal<B> X(N);
+
+        for (size_t i = 0; i < items.size(); ++i)
+        {
+            uint64_t x = items[i];
+            REQUIRE(notima::wordy::popcount(x) == N);
+            size_t r = X.rank(items[i]);
+            REQUIRE(r < X.count());
+            size_t y = X.select(r);
+            REQUIRE(notima::wordy::popcount(y) == N);
+            REQUIRE(x == y);
+        }
+    }
 }
 // namespace anonymous
 
-TEST_CASE("Test block 5 ordinals", "[rrr-array-test]")
+TEST_CASE("Test block 4 ordinals", "[rrr-array-test]")
 {
     constexpr size_t B = 4;
 
@@ -123,4 +199,23 @@ TEST_CASE("Test block 5 ordinals", "[rrr-array-test]")
         REQUIRE(X.rank(0xe) == 6);
         REQUIRE(X.rank(0xf) == 6);
     }
+}
+
+TEST_CASE("Test block 9 ordinals", "[rrr-array-test]")
+{
+    constexpr size_t B = 9;
+
+    block_ordinal_test<B,3>();
+    block_ordinal_test<B,5>();
+}
+
+TEST_CASE("Test block 63 ordinals", "[rrr-array-test]")
+{
+    constexpr size_t B = 63;
+
+    large_block_ordinal_test<B,3>();
+    large_block_ordinal_test<B,5>();
+    large_block_ordinal_test<B,15>();
+    large_block_ordinal_test<B,31>();
+    large_block_ordinal_test<B,48>();
 }
