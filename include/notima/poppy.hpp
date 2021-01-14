@@ -122,6 +122,7 @@ namespace notima
             };
 
             size_t num_basic_blocks;
+            size_t total_count;
             std::vector<uint64_t> index;
             std::vector<uint64_t> samples;
 
@@ -252,18 +253,8 @@ namespace notima
                     total_bit_count += c;
 
                 }
+                total_count = total_bit_count;
             }
-
-            static void dump_ix_word(uint64_t p_ixw)
-            {
-                std::cout << (p_ixw >> 32);
-                for (size_t i = 0; i < 3; ++i)
-                {
-                    std::cout << '\t' << ((p_ixw >> (10*i)) & 1023);
-                }
-                std::cout << std::endl;
-            }
-
         };
 
         struct basic_block
@@ -304,13 +295,13 @@ namespace notima
         };
 
         std::vector<word_type> words;
-        naive_index I;
+        //naive_index I;
         rank_index J;
 
         poppy(std::vector<uint64_t>&& p_words)
             : words(p_words)
         {
-            I.make(words);
+            //I.make(words);
             J.make(words);
         }
 
@@ -321,18 +312,18 @@ namespace notima
 
         uint64_t count() const
         {
-            return (I.index.size() ? I.index.back() : 0);
+            return J.total_count;
         }
 
-        uint64_t rank_(uint64_t p_x) const
-        {
-            uint64_t block_num = p_x >> block_shift;
-            uint64_t block_start = block_num << block_shift;
-            uint64_t block_start_word = block_start >> word_shift;
-            uint64_t r0 = I.lhs_count(p_x);
-            uint64_t r1 = basic_block::rank(words.begin() + block_start_word, p_x & block_mask);
-            return r0 + r1;
-        }
+        //uint64_t rank_(uint64_t p_x) const
+        //{
+        //    uint64_t block_num = p_x >> block_shift;
+        //    uint64_t block_start = block_num << block_shift;
+        //    uint64_t block_start_word = block_start >> word_shift;
+        //    uint64_t r0 = I.lhs_count(p_x);
+        //    uint64_t r1 = basic_block::rank(words.begin() + block_start_word, p_x & block_mask);
+        //    return r0 + r1;
+        //}
 
         uint64_t rank(uint64_t p_x) const
         {
@@ -344,14 +335,14 @@ namespace notima
             return r0 + r1;
         }
 
-        uint64_t select_(uint64_t p_r) const
-        {
-            uint64_t block_num, left_count;
-            std::tie(block_num, left_count) = I.select_block(p_r);
-            uint64_t block_start = block_num << block_shift;
-            uint64_t block_start_word = block_start >> word_shift;
-            return block_start + basic_block::select(words.begin() + block_start_word, p_r - left_count);
-        }
+        //uint64_t select_(uint64_t p_r) const
+        //{
+        //    uint64_t block_num, left_count;
+        //    std::tie(block_num, left_count) = I.select_block(p_r);
+        //    uint64_t block_start = block_num << block_shift;
+        //    uint64_t block_start_word = block_start >> word_shift;
+        //    return block_start + basic_block::select(words.begin() + block_start_word, p_r - left_count);
+        //}
 
         uint64_t select(uint64_t p_r) const
         {
