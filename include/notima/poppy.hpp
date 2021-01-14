@@ -67,23 +67,121 @@ namespace notima
 
         struct rank_index
         {
+            static constexpr size_t sample_bits = 13;
+            static constexpr size_t sample_blok = 1ULL << sample_bits;
+            static constexpr size_t sample_mask = (1ULL << sample_bits) - 1;
+
+            struct index_block_address
+            {
+                const uint64_t word;
+
+                index_block_address(uint64_t p_word)
+                    : word(p_word)
+                {
+                }
+
+                size_t index_block_num() const
+                {
+                    return word >> (block_shift + 2);
+                }
+
+                size_t sub_block_num() const
+                {
+                    return (word >> block_shift) & 3;
+                }
+            };
+
+            struct index_block
+            {
+                const uint64_t word;
+
+                index_block(uint64_t p_word)
+                    : word(p_word)
+                {
+                }
+
+                size_t lhs_count() const
+                {
+                    return word >> 32;
+                }
+
+                size_t sub_count(size_t p_idx) const
+                {
+                    return (word >> (10*p_idx)) & 1023;
+                }
+
+                nlohmann::json dump() const
+                {
+                    nlohmann::json j;
+                    j.push_back(lhs_count());
+                    j.push_back(sub_count(0));
+                    j.push_back(sub_count(1));
+                    j.push_back(sub_count(2));
+                    return j;
+                }
+            };
+
+            size_t num_basic_blocks;
             std::vector<uint64_t> index;
+            std::vector<uint64_t> samples;
 
             uint64_t lhs_count(uint64_t p_x) const
             {
-                uint64_t ix_part = p_x >> block_shift;
-                uint64_t ix_loc = ix_part >> 2;
-                uint64_t ix_block = ix_part & 3;
+                const index_block_address addr(p_x);
+                uint64_t ix_loc = addr.index_block_num();
+                uint64_t ix_block = addr.sub_block_num();
 
-                uint64_t ix_word = index[ix_loc];
-                uint64_t r = ix_word >> 32;
+                const index_block ix(index[ix_loc]);
+                uint64_t r = ix.lhs_count();
+
+                size_t block_num = ix_loc << 2;
 
                 for (size_t i = 0; i < ix_block; ++i)
                 {
-                    r += ix_word & 1023;
-                    ix_word >>= 10;
+                    r += ix.sub_count(i);
                 }
                 return r;
+            }
+
+            template <bool Paranoid = false>
+            std::tuple<uint64_t,uint64_t> select_block(uint64_t p_r) const
+            {
+                // Locate the select sample.
+                //
+                uint64_t sam_blk = p_r >> sample_bits;
+                uint64_t sam_x = samples[sam_blk];
+
+                // Locate the sample's index block,
+                // then scan forward to locate the index block for p_r.
+                //
+                const index_block_address addr(sam_x);
+                uint64_t ix_loc = addr.index_block_num();
+
+                while (ix_loc + 1 < index.size())
+                {
+                    const index_block ix(index[ix_loc + 1]);
+                    if (ix.lhs_count() > p_r)
+                    {
+                        break;
+                    }
+                    ix_loc += 1;
+                }
+
+                const index_block ix(index[ix_loc]);
+                uint64_t r0 = ix.lhs_count();
+                uint64_t index_block_num = ix_loc << 2;
+                uint64_t block_num = 0;
+                while (block_num < 3
+                    && index_block_num + block_num < num_basic_blocks
+                    && r0 + ix.sub_count(block_num) <= p_r)
+                {
+                    r0 += ix.sub_count(block_num);
+                    block_num += 1;
+                }
+
+                block_num += index_block_num;
+
+                return {block_num, r0};
             }
 
             void make(const std::vector<uint64_t>& p_words)
@@ -92,7 +190,11 @@ namespace notima
                 uint64_t current_index_block_count = 0;
                 uint64_t basic_block_count = 0;
                 uint64_t basic_block_counts = 0;
-                for (size_t i = 0; i < p_words.size(); ++i)
+                uint64_t total_bit_count = 0;
+
+                num_basic_blocks = 1 + (p_words.size() + (block_words - 1)) / block_words;
+
+                for (size_t i = 0; true; ++i)
                 {
                     if (i > 0 && (i % block_words) == 0)
                     {
@@ -117,41 +219,42 @@ namespace notima
 
                             index_block_left_count += current_index_block_count;
                             current_index_block_count = 0;
+
+                            if (i >= p_words.size())
+                            {
+                                break;
+                            }
                         }
+                    }
+
+                    if (i >= p_words.size())
+                    {
+                        continue;
                     }
 
                     uint64_t w = p_words[i];
                     uint64_t c = notima::wordy::popcount(w);
                     basic_block_count += c;
-                }
 
-                // Pad out the block
-                //
-                for (size_t i = p_words.size(); ((i >> block_word_shift) & 3) != 0; ++i)
-                {
-                        if (i > 0 && (i % block_words) == 0)
-                        {
-                            // flush old basic block
-                            //
-                            basic_block_counts = (basic_block_counts << 10) | basic_block_count;
-                            current_index_block_count += basic_block_count;
-                            basic_block_count = 0;
-                        }
-                }
+                    if ((total_bit_count & sample_mask) == 0 && c > 0)
+                    {
+                        uint64_t j = notima::wordy::select(w, 0);
+                        samples.push_back(64 * i + j);
+                    }
+                    else if (((total_bit_count + c) >> sample_bits) != (total_bit_count >> sample_bits)
+                             && ((total_bit_count + c) & sample_mask) > 0)
+                    {
+                        uint64_t p = sample_blok - (total_bit_count & sample_mask);
+                        // assert(0 <= p && p < sample_blok);
+                        uint64_t j = notima::wordy::select(w, p);
+                        samples.push_back(64 * i + j);
+                    }
+                    total_bit_count += c;
 
-                // flush last index block
-                //
-                uint64_t ix = 0;
-                for (size_t j = 1; j < 4; ++j)
-                {
-                    ix = (ix << 10) | (basic_block_counts & 1023);
-                    basic_block_counts >>= 10;
                 }
-                ix |= index_block_left_count << 32;
-                index.push_back(ix);
             }
 
-            void dump_ix_word(uint64_t p_ixw)
+            static void dump_ix_word(uint64_t p_ixw)
             {
                 std::cout << (p_ixw >> 32);
                 for (size_t i = 0; i < 3; ++i)
@@ -241,10 +344,19 @@ namespace notima
             return r0 + r1;
         }
 
-        uint64_t select(uint64_t p_r) const
+        uint64_t select_(uint64_t p_r) const
         {
             uint64_t block_num, left_count;
             std::tie(block_num, left_count) = I.select_block(p_r);
+            uint64_t block_start = block_num << block_shift;
+            uint64_t block_start_word = block_start >> word_shift;
+            return block_start + basic_block::select(words.begin() + block_start_word, p_r - left_count);
+        }
+
+        uint64_t select(uint64_t p_r) const
+        {
+            uint64_t block_num, left_count;
+            std::tie(block_num, left_count) = J.select_block<>(p_r);
             uint64_t block_start = block_num << block_shift;
             uint64_t block_start_word = block_start >> word_shift;
             return block_start + basic_block::select(words.begin() + block_start_word, p_r - left_count);
@@ -299,13 +411,15 @@ namespace notima
                 s["poppy"]["size"] = p_obj.size();
                 s["poppy"]["count"] = p_obj.count();
                 s["poppy"]["words"] = notima::internal::stats::gather(p_obj.words);
-                s["poppy"]["naive"] = notima::internal::stats::gather(p_obj.I.index);
+                //s["poppy"]["naive"] = notima::internal::stats::gather(p_obj.I.index);
                 s["poppy"]["poppy"] = notima::internal::stats::gather(p_obj.J.index);
+                s["poppy"]["samples"] = notima::internal::stats::gather(p_obj.J.samples);
                 uint64_t m = 0;
                 m += s["poppy"]["poppy"]["vector"]["memory"].get<uint64_t>();;
                 m += s["poppy"]["words"]["vector"]["memory"].get<uint64_t>();;
+                m += s["poppy"]["samples"]["vector"]["memory"].get<uint64_t>();;
                 s["poppy"]["memory"] = m;
-                if (1)
+                if (0)
                 {
                     std::vector<uint64_t> d(65);
                     for (auto itr = p_obj.words.begin(); itr != p_obj.words.end(); ++itr)

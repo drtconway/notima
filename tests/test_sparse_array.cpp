@@ -67,12 +67,16 @@ TEST_CASE("Test small sparse array", "[sparse-array-test]")
         uint64_t x = items[i];
         size_t r = a.rank(x);
         uint64_t y = a.select(i);
-        //uint64_t x_hi = x >> D;
-        //uint64_t x_lo = x & M;
-        //uint64_t y_hi = y >> D;
-        //uint64_t y_lo = y & M;
-        //std::cout << "x\t" << hex(x_hi) << '\t' << hex(x_lo) << std::endl;
-        //std::cout << "y\t" << hex(y_hi) << '\t' << hex(y_lo) << std::endl;
+        if (0)
+        {
+            uint64_t x_hi = x >> D;
+            uint64_t x_lo = x & M;
+            uint64_t y_hi = y >> D;
+            uint64_t y_lo = y & M;
+            std::cout << "i\t" << i << std::endl;
+            std::cout << "x\t" << hex(x_hi) << '\t' << hex(x_lo) << std::endl;
+            std::cout << "y\t" << hex(y_hi) << '\t' << hex(y_lo) << std::endl;
+        }
         REQUIRE(r == i);
         REQUIRE(y == x);
     }
@@ -114,7 +118,7 @@ TEST_CASE("Test medium sparse array", "[sparse-array-test]")
         REQUIRE(y == x);
     }
 
-    if (1)
+    if (0)
     {
         std::cout << notima::internal::stats::gather(a) << std::endl;
     }

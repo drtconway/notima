@@ -86,7 +86,7 @@ TEST_CASE("Test poppy mid-density", "[poppy-test]")
         uint64_t p = ones[i];
         uint64_t r = P.rank(p);
         uint64_t q = P.select(i);
-        //std::cout << i << '\t' << r << '\t' << p << '\t' << q << std::endl;
+        // std::cout << i << '\t' << r << '\t' << p << '\t' << q << std::endl;
         REQUIRE(r == i);
         REQUIRE(q == p);
     }
@@ -146,3 +146,50 @@ TEST_CASE("Test poppy rank0/select0 mid density", "[poppy-test]")
         REQUIRE(q == p);
     }
 }
+
+TEST_CASE("Test poppy sampling select", "[poppy-test]")
+{
+    constexpr size_t N = 10001;
+    std::vector<uint64_t> words;
+    make_words(19, 0.5, N, words);
+
+    std::vector<uint64_t> ones;
+    scan_for_ones(words, ones);
+
+    notima::poppy P(std::move(words));
+
+    REQUIRE(P.size() == 64*N);
+    REQUIRE(P.count() == ones.size());
+
+    for (size_t i = 0; i < ones.size(); i += 8192)
+    {
+        size_t j = i / 8192;
+        REQUIRE(P.J.samples[j] == ones[i]);
+    }
+}
+
+TEST_CASE("Test poppy from sparse", "[poppy-test]")
+{
+    std::vector<uint64_t> words{96186217297ULL};
+
+    std::vector<uint64_t> ones;
+    scan_for_ones(words, ones);
+
+    notima::poppy P(std::move(words));
+
+    REQUIRE(P.count() == ones.size());
+
+    for (size_t i = 0; i < ones.size(); ++i)
+    {
+        uint64_t p = ones[i];
+        uint64_t r = P.rank(p);
+        uint64_t q = P.select(i);
+        if (0)
+        {
+            std::cout << i << '\t' << p << '\t' << r << '\t' << q << std::endl;
+        }
+        REQUIRE(r == i);
+        REQUIRE(q == p);
+    }
+}
+

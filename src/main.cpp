@@ -500,10 +500,10 @@ namespace // anonymous
             std::cout << all.size() << '\t' << t << std::endl;
         }
         notima::vbit_array A(cnt_type(all.begin(), all.end()), cnt_type(all.end(), all.end()));
-        //std::cout << notima::internal::stats::gather(A) << std::endl;
+        std::cout << notima::internal::stats::gather(A) << std::endl;
         size_t N = A.size();
         notima::sparse_array X(2*K, N, kmr_type(all.begin(), all.end()), kmr_type(all.end(), all.end()));
-        //std::cout << notima::internal::stats::gather(X) << std::endl;
+        std::cout << notima::internal::stats::gather(X) << std::endl;
         //X.with([](const auto& arr) {
         //    std::cout << arr.size() << std::endl;
         //    const std::vector<uint64_t>& ws = arr.hi_bits.words;

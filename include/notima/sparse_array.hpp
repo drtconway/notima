@@ -110,6 +110,8 @@ namespace notima
                 curr_hi_part += 1;
             }
 
+            bitvec.push_back(1);
+
             return bitvec.words;
         }
 
