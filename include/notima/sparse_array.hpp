@@ -310,11 +310,10 @@ namespace notima
             }
         };
 
-        template <>
-        struct gather<notima::sparse_array>
+        template <size_t D>
+        struct gather_sparse_helper
         {
-            template <size_t D>
-            nlohmann::json gather_sparse(const notima::sparse_array::array_interface& p_obj) const
+            static nlohmann::json gather_sparse(const notima::sparse_array::array_interface& p_obj)
             {
                 using impl = notima::sparse_array::sparse_array_impl<D>;
                 const impl* ptr = dynamic_cast<const impl*>(&p_obj);
@@ -324,18 +323,25 @@ namespace notima
                 }
                 else
                 {
-                    return gather_sparse<D+1>(p_obj);
+                    return gather_sparse_helper<D+1>::gather_sparse(p_obj);
                 }
             }
-            template <>
-            nlohmann::json gather_sparse<64>(const notima::sparse_array::array_interface& p_obj) const
+        };
+        template <>
+        struct gather_sparse_helper<64>
+        {
+            static nlohmann::json gather_sparse(const notima::sparse_array::array_interface& p_obj)
             {
                 throw std::runtime_error("gather_sparse: D out of range");
             }
+        };
 
+        template <>
+        struct gather<notima::sparse_array>
+        {
             nlohmann::json operator()(const notima::sparse_array& p_obj) const
             {
-                return gather_sparse<1>(*p_obj.m_array);
+                return gather_sparse_helper<1>::gather_sparse(*p_obj.m_array);
             }
         };
     }
